@@ -17,14 +17,30 @@ RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list  && \
 
 COPY requirements.txt /opt/CTFd/
 
-RUN pip install -r requirements.txt -i http://pypi.doubanio.com/simple/ --trusted-host pypi.doubanio.com --no-cache-dir
+# 更新 pip 并安装依赖
+
+RUN python -m pip install --upgrade pip -i https://mirrors.aliyun.com/pypi/simple/ \
+    --trusted-host mirrors.aliyun.com && \
+    pip install --retries 10 \
+    --timeout 600 \
+    --no-deps \
+    --ignore-installed \
+    -r requirements.txt \
+    -i https://mirrors.aliyun.com/pypi/simple/ \
+    --trusted-host mirrors.aliyun.com \
+    --no-cache-dir
 
 COPY . /opt/CTFd
 
 # hadolint ignore=SC2086
 RUN for d in CTFd/plugins/*; do \
         if [ -f "$d/requirements.txt" ]; then \
-            pip install -r $d/requirements.txt -i http://pypi.doubanio.com/simple/ --trusted-host pypi.doubanio.com --no-cache-dir; \
+            pip install --retries 10 \
+            --timeout 600 \
+            -r $d/requirements.txt \
+            -i https://mirrors.aliyun.com/pypi/simple/ \
+            --trusted-host mirrors.aliyun.com \
+            --no-cache-dir; \
         fi; \
     done;
 
